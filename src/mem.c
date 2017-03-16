@@ -65,7 +65,7 @@ uint8_t m_read(uint16_t loc, Mode m, reg_t* regs) {
     return value;
 }
 
-void m_write(uint16_t loc, uint8_t value, Mode m, const reg_t regs) {
+void m_write(uint16_t loc, Mode m, uint8_t value, const reg_t regs) {
 
     switch(m) {
         case ZER:
@@ -104,4 +104,31 @@ void m_write(uint16_t loc, uint8_t value, Mode m, const reg_t regs) {
             // invalid Mode for writing to memory
         break;
     }
+}
+
+void LDA(uint16_t loc, Mode m, reg_t* regs) {
+    regs->A = m_read(loc, m, regs);
+    set_PC_NZ(regs->A);
+}
+
+void LDX(uint16_t loc, Mode m, reg_t* regs) {
+    regs->X = m_read(loc, m, regs);
+    set_PC_NZ(regs->X);
+}
+
+void LDY(uint16_t loc, Mode m, reg_t* regs) {
+    regs->Y = m_read(loc, m, regs);
+    set_PC_NZ(regs->Y);
+}
+
+void STA(uint16_t loc, Mode m, const reg_t regs) {
+    m_write(loc, m, regs.A, regs);
+}
+
+void STX(uint16_t loc, Mode m, const reg_t regs) {
+    m_write(loc, m, regs.X, regs);
+}
+
+void STY(uint16_t loc, Mode m, const reg_t regs) {
+    m_write(loc, m, regs.Y, regs);
 }
