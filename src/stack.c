@@ -26,6 +26,6 @@ void PHP(reg_t* regs) {
 }
 
 void PLP(reg_t* regs) {
-    regs->A = m_read(0x100 + regs->S, ABS, regs);
+    regs->P = m_read(0x100 + regs->S, ABS, regs);
     regs->S++;
 }
