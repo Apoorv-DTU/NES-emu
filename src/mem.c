@@ -1,4 +1,5 @@
 #include "mem.h"
+#include "registers.h"
 
 static uint8_t mem[0x10000] = {0};
 
@@ -59,19 +60,12 @@ uint8_t m_read(uint16_t loc, Mode m, reg_t* regs) {
         break;
     }
 
-    if(value > 0x80)
-        regs->P |= (1 << 7);
-    else if (value == 0)
-        regs->P |= 2;
-    else {
-        regs->P &= ~(1 << 7);
-        regs->P &= ~2;
-    }
+    set_PC_NZ(regs, value);
 
     return value;
 }
 
-void m_write(uint16_t loc, uint8_t value, Mode m, reg_t* regs) {
+void m_write(uint16_t loc, uint8_t value, Mode m, const reg_t regs) {
 
     switch(m) {
         case ZER:
@@ -79,11 +73,11 @@ void m_write(uint16_t loc, uint8_t value, Mode m, reg_t* regs) {
         break;
 
         case ZEX:
-            mem[(loc + (regs->X)) % 0xff] = value;
+            mem[(loc + (regs.X)) % 0xff] = value;
         break;
 
         case ZEY:
-            mem[(loc + (regs->Y)) % 0xff] = value;
+            mem[(loc + (regs.Y)) % 0xff] = value;
         break;
 
         case ABS:
@@ -91,23 +85,23 @@ void m_write(uint16_t loc, uint8_t value, Mode m, reg_t* regs) {
         break;
 
         case ABX:
-            mem[loc + (regs->X)] = value;
+            mem[loc + (regs.X)] = value;
         break;
 
         case ABY:
-            mem[loc + (regs->Y)] = value;
+            mem[loc + (regs.Y)] = value;
         break;
 
         case IDX:
-            mem[(mem[loc + (regs->X) + 1] << 8) + mem[loc + (regs->X)]] = value;
+            mem[(mem[loc + (regs.X) + 1] << 8) + mem[loc + (regs.X)]] = value;
         break;
 
         case IDY:
-            mem[(mem[loc+1] << 8) + mem[loc] + (regs->Y)] = value;
+            mem[(mem[loc+1] << 8) + mem[loc] + (regs.Y)] = value;
         break;
 
         default:
-            // invalid Mode
+            // invalid Mode for writing to memory
         break;
     }
 }

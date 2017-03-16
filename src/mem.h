@@ -10,6 +10,6 @@ enum addr_mode { ACC, IMM, ZER, ZEX, ZEY, REL,
 typedef enum addr_mode Mode;
 
 uint8_t m_read(uint16_t loc, Mode m, reg_t* regs);
-void m_write(uint16_t loc, uint8_t value, Mode m, reg_t* regs);
+void m_write(uint16_t loc, uint8_t value, Mode m, const reg_t regs);
 
 #endif

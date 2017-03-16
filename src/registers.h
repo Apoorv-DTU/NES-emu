@@ -9,9 +9,11 @@ struct reg{
     uint8_t A;
     uint8_t S;
     uint8_t P;
-    uint8_t PC;
+    uint16_t PC;
 };
 
 typedef struct reg reg_t;
+
+void set_PC_NZ(reg_t* regs, const uint8_t value);
 
 #endif
