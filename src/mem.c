@@ -58,9 +58,12 @@ uint8_t m_read(uint16_t loc, Mode m, reg_t* regs) {
         case IDY:
             value = mem[(mem[loc+1] << 8) + mem[loc]+(regs->Y)];
         break;
-    }
 
-    set_PC_NZ(regs, value);
+        default:
+            //Invalid Addressing Mode
+            value = 0;
+        break;
+    }
 
     return value;
 }
@@ -108,17 +111,17 @@ void m_write(uint16_t loc, Mode m, uint8_t value, const reg_t regs) {
 
 void LDA(uint16_t loc, Mode m, reg_t* regs) {
     regs->A = m_read(loc, m, regs);
-    set_PC_NZ(regs->A);
+    set_PC_NZ(regs, regs->A);
 }
 
 void LDX(uint16_t loc, Mode m, reg_t* regs) {
     regs->X = m_read(loc, m, regs);
-    set_PC_NZ(regs->X);
+    set_PC_NZ(regs, regs->X);
 }
 
 void LDY(uint16_t loc, Mode m, reg_t* regs) {
     regs->Y = m_read(loc, m, regs);
-    set_PC_NZ(regs->Y);
+    set_PC_NZ(regs, regs->Y);
 }
 
 void STA(uint16_t loc, Mode m, const reg_t regs) {

@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define GETNBIT(val, n) ((val >> n) & 1)
+#define SETNBIT(val, n, b) (b==0?(val &= ~(1 << n)):(val |= (1 << n)))
+
 struct reg{
     uint8_t X;
     uint8_t Y;
@@ -31,8 +34,5 @@ void CLV(reg_t* regs);
 void SEC(reg_t* regs);
 void SED(reg_t* regs);
 void SEI(reg_t* regs);
-
-
-
 
 #endif

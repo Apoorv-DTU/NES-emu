@@ -9,6 +9,7 @@ void JMP(uint16_t loc, Mode m, reg_t* regs) {
         jmp_loc = m_read(loc, m, regs);
     } else {
         //Invalid! addressing mode
+        jmp_loc = 0;
     }
 
     regs->PC = jmp_loc;
@@ -71,3 +72,13 @@ void BMI(uint8_t offset, reg_t* regs) {
 }
 
 void NOP() { /* do nothing */ }
+
+void BRK(reg_t* regs) {
+    JSR(0xffff, regs);
+    m_write(0x100 + (regs->S--), ABS, regs->P ,*regs);
+}
+
+void RTI(reg_t* regs) {
+    regs->P = m_read(0x100 + (regs->S++), ABS, regs);
+    RTS(regs);
+}

@@ -12,5 +12,4 @@ void PLA(reg_t* regs);
 void PHP(reg_t* regs);
 void PLP(reg_t* regs);
 
-
 #endif
