@@ -25,7 +25,7 @@ void DEC(uint16_t loc, Mode m, reg_t* regs);
 void DEX(uint16_t loc, Mode m, reg_t* regs);
 void DEY(uint16_t loc, Mode m, reg_t* regs);
 
-void ASR(uint16_t loc, Mode m, reg_t* regs);
+void LSR(uint16_t loc, Mode m, reg_t* regs);
 void ASL(uint16_t loc, Mode m, reg_t* regs);
 void ROR(uint16_t loc, Mode m, reg_t* regs);
 void ROL(uint16_t loc, Mode m, reg_t* regs);

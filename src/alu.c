@@ -139,7 +139,7 @@ void ASL(uint16_t loc, Mode m, reg_t* regs) {
     SETNBIT(regs->P, 0, b);
 }
 
-void ASR(uint16_t loc, Mode m, reg_t* regs) {
+void LSR(uint16_t loc, Mode m, reg_t* regs) {
     
     char b;
 
