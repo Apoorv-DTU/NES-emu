@@ -3,16 +3,17 @@
 
 #define MEM_SIZE 0xffff;
 
-union arg {
-    uint8_t small_arg;
-    uint16_t big_arg;
-};
+#define G_HIGH8(a) (a & ~(0xff))
+#define G_LOW8(a) (a & 0xff)
 
-typedef union arg arg_t; 
+#define S_HIGH8(a, v) ((v << 8) + G_LOW8(a))
+#define S_LOW8(a, v) ((G_HIGH8(a) << 8) + v)
+
+typedef uint16_t arg_t; 
 
 enum stat {
-    FAIL, BRANCH, CROSS_PAGE, BRANCH_PAGE
-}; 
+    SUCCESS, FAIL, BRANCH, CROSS_PAGE, BRANCH_PAGE
+};
 
 typedef enum stat Status;
 
@@ -33,7 +34,7 @@ typedef struct state state_t;
 struct cmd {
     int cycles;
     int bytes;
-    status (*func)(arg_t*, state_t*);
+    Status (*func)(arg_t*, state_t*);
 };
 
 #endif

@@ -20,29 +20,29 @@ uint16_t resolv_zer(uint8_t addr, uint8_t offset) {
 }
 
 #define LD_AB(__Reg, __Off) uint16_t addr = resolv_abs(G_LOW8(args), G_HIGH8(args), __Off); \
-                            state->__Reg = state->mem[addr];                                 \
+                            state->__Reg = state->mem[addr];                                \
                                                                                             \
                             if((addr % 0x0fff) == (state->PC % 0x0fff))                     \
                                 return SUCCESS;                                             \
                             else return CROSS_PAGE;             
 
 #define LD_ZE(__Reg, __Off) uint16_t addr = resolv_zer(G_LOW8(args), __Off);  \
-                            state->__Reg = state->mem[addr];                 \
+                            state->__Reg = state->mem[addr];                  \
                             return SUCCESS;
 
 #define LD_IN(__Reg, __OffX, __OffY) uint16_t addr = resolv_indirect(G_LOW8(args), state , __OffX, __OffY); \
-                                     state->__Reg = state->mem[addr];                                             \
-                                                                                                           \
-                                     if((addr % 0x0fff) == (state->PC % 0x0fff))                           \
-                                         return SUCCESS;                                                   \
+                                     state->__Reg = state->mem[addr];                                       \
+                                                                                                            \
+                                     if((addr % 0x0fff) == (state->PC % 0x0fff))                            \
+                                         return SUCCESS;                                                    \
                                      else return CROSS_PAGE;
 
 #define ST_AB(__Reg, __Off) uint16_t addr = resolv_abs(G_LOW8(args), G_HIGH8(args), __Off); \
-                            state->mem[addr] = state->__Reg;                                        \
+                            state->mem[addr] = state->__Reg;                                \
                             return SUCCESS;
 
 #define ST_ZE(__Reg, __Off) uint16_t addr = resolv_ze(G_LOW8(args), __Off); \
-                            state->mem[addr] = state->__Reg;                       \
+                            state->mem[addr] = state->__Reg;                \
                             return SUCCESS;
 
 Status LDA_IMM(arg_t args, state_t* state) {
