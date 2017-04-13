@@ -2,37 +2,28 @@
 #define REGISTERS_H
 
 #include <stdint.h>
+#include "cmd.h"
 
 #define GETNBIT(val, n) ((val >> n) & 1)
 #define SETNBIT(val, n, b) (b==0?(val &= ~(1 << n)):(val |= (1 << n)))
 
-struct reg{
-    uint8_t X;
-    uint8_t Y;
-    uint8_t A;
-    uint8_t S;
-    uint8_t P;
-    uint16_t PC;
-};
 
-typedef struct reg reg_t;
-
-void set_PC_NZ(reg_t* regs, const uint8_t value);
+void set_PC_NZ(state_t* regs, const uint8_t value);
 
 // Register transform commands
-void TAX(reg_t* regs);
-void TAY(reg_t* regs);
-void TXA(reg_t* regs);
-void TYA(reg_t* regs);
+Status TAX(arg_t args, state_t* regs);
+Status TAY(arg_t args, state_t* regs);
+Status TXA(arg_t args, state_t* regs);
+Status TYA(arg_t args, state_t* regs);
 
 // Status flag commands
-void CLC(reg_t* regs);
-void CLD(reg_t* regs);
-void CLI(reg_t* regs);
-void CLV(reg_t* regs);
+Status CLC(arg_t args, state_t* regs);
+Status CLD(arg_t args, state_t* regs);
+Status CLI(arg_t args, state_t* regs);
+Status CLV(arg_t args, state_t* regs);
 
-void SEC(reg_t* regs);
-void SED(reg_t* regs);
-void SEI(reg_t* regs);
+Status SEC(arg_t args, state_t* regs);
+Status SED(arg_t args, state_t* regs);
+Status SEI(arg_t args, state_t* regs);
 
 #endif

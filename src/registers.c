@@ -1,62 +1,72 @@
 #include "registers.h"
 
-void set_PC_NZ(reg_t* regs, const uint8_t value) {
+void set_PC_NZ(state_t* state, const uint8_t value) {
     
     if(value > 0x80)
-        regs->P |= (1 << 7);
+        state->P |= (1 << 7);
     else if (value == 0)
-        regs->P |= 2;
+        state->P |= 2;
     else {
-        regs->P &= ~(1 << 7);
-        regs->P &= ~2;
+        state->P &= ~(1 << 7);
+        state->P &= ~2;
     }
 }
 
-void TAX(reg_t* regs) {
-    regs->X = regs->A;
-    set_PC_NZ(regs, regs->X);
+Status TAX(arg_t args, state_t* state) {
+    state->X = state->A;
+    set_PC_NZ(state, state->X);
+    return SUCCESS;
 }
 
-void TAY(reg_t* regs) {
-    regs->Y = regs->A;
-    set_PC_NZ(regs, regs->Y);
+Status TAY(arg_t args, state_t* state) {
+    state->Y = state->A;
+    set_PC_NZ(state, state->Y);
+    return SUCCESS;
 }
 
-void TXA(reg_t* regs) {
-    regs->A = regs->X;
-    set_PC_NZ(regs, regs->X);
+Status TXA(arg_t args, state_t* state) {
+    state->A = state->X;
+    set_PC_NZ(state, state->X);
+    return SUCCESS;
 }
 
-void TYA(reg_t* regs) {
-    regs->A = regs->Y;
-    set_PC_NZ(regs, regs->Y);
+Status TYA(arg_t args, state_t* state) {
+    state->A = state->Y;
+    set_PC_NZ(state, state->Y);
+    return SUCCESS;
 }
 
-void CLC(reg_t* regs) {
-    regs->P &= ~1;
+Status CLC(arg_t args, state_t* state) {
+    state->P &= ~1;
+    return SUCCESS;
 }
 
-void CLI(reg_t* regs) {
-    regs->P &= ~4;
+Status CLI(arg_t args, state_t* state) {
+    state->P &= ~4;
+    return SUCCESS;
 }
 
-void CLD(reg_t* regs) {
-    regs->P &= ~8;
+Status CLD(arg_t args, state_t* state) {
+    state->P &= ~8;
+    return SUCCESS;
 }
 
-void CLV(reg_t* regs) {
-    regs->P &= ~64;
+Status CLV(arg_t args, state_t* state) {
+    state->P &= ~64;
+    return SUCCESS;
 }
 
-
-void SEC(reg_t* regs) {
-    regs->P |= 1;
+Status SEC(arg_t args, state_t* state) {
+    state->P |= 1;
+    return SUCCESS;
 }
 
-void SEI(reg_t* regs) {
-    regs->P |= 4;
+Status SEI(arg_t args, state_t* state) {
+    state->P |= 4;
+    return SUCCESS;
 }
 
-void SED(reg_t* regs) {
-    regs->P |= 8;
+Status SED(arg_t args, state_t* state) {
+    state->P |= 8;
+    return SUCCESS;
 }
