@@ -1,6 +1,8 @@
 #ifndef CMD_H
 #define CMD_H
 
+#include <stdint.h>
+
 #define MEM_SIZE 0xffff;
 
 #define G_HIGH8(a) (a & ~(0xff))
@@ -34,7 +36,7 @@ typedef struct state state_t;
 struct cmd {
     int cycles;
     int bytes;
-    Status (*func)(arg_t*, state_t*);
+    Status (*func)(arg_t, state_t*);
 };
 
 #endif
