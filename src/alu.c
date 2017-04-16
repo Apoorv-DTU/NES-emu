@@ -1,216 +1,587 @@
 #include "alu.h"
 
-void AND(uint16_t loc, Mode m, reg_t* regs) {
-    uint8_t value = m_read(loc, m, regs);
-    regs->A &= value;
-    set_PC_NZ(regs, value);
+#define CHECK_PAGE_CROSS if((addr % 0xfff) == (state->PC % 0xfff))return SUCCESS; else return CROSS_PAGE
+
+#define gen_AND(MODE, get_addr, ret) Status AND_##MODE (arg_t args, state_t* state) { \
+                       uint16_t addr = get_addr; \
+                       uint8_t value = state->mem[addr]; \
+                       state->A &= value; \
+                       set_PC_NZ(state, value); \
+                       ret; }
+
+#define gen_EOR(MODE, get_addr, ret) Status EOR_##MODE (arg_t args, state_t* state) { \
+                       uint16_t addr = get_addr; \
+                       uint8_t value = state->mem[addr]; \
+                       state->A ^= value; \
+                       set_PC_NZ(state, value); \
+                       ret; }
+
+#define gen_ORA(MODE, get_addr, ret) Status ORA_##MODE (arg_t args, state_t* state) { \
+                       uint16_t addr = get_addr; \
+                       uint8_t value = state->mem[addr]; \
+                       state->A |= value; \
+                       set_PC_NZ(state, value); \
+                       ret; }
+//AND commands
+Status AND_IMM(arg_t args, state_t* state) {
+    state->A &= G_LOW8(args);
+    set_PC_NZ(state, state->A);
+    return SUCCESS;
 }
 
-void EOR(uint16_t loc, Mode m, reg_t* regs) {
-    uint8_t value = m_read(loc, m, regs);
-    regs->A ^= value;
-    set_PC_NZ(regs, value);
+gen_AND(ABS,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), 0),
+        return SUCCESS)
+
+gen_AND(ABX,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->X),
+        CHECK_PAGE_CROSS)
+
+gen_AND(ABY,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->Y),
+        CHECK_PAGE_CROSS)
+
+gen_AND(ZER,
+        resolv_zer(G_LOW8(args), 0),
+        return SUCCESS)
+
+gen_AND(ZEX,
+        resolv_zer(G_LOW8(args), state->X),
+        return SUCCESS)
+
+gen_AND(IDX,
+        resolv_indirect(G_LOW8(args), state, state->X, 0),
+        return SUCCESS)
+
+gen_AND(IDY,
+        resolv_indirect(G_LOW8(args), state, 0, state->Y),
+        CHECK_PAGE_CROSS)
+
+//EOR commands
+Status EOR_IMM(arg_t args, state_t* state) {
+    state->A ^= G_LOW8(args);
+    set_PC_NZ(state, state->A);
+    return SUCCESS;
 }
 
-void ORA(uint16_t loc, Mode m, reg_t* regs) {
-    uint8_t value = m_read(loc, m, regs);
-    regs->A |= value;
-    set_PC_NZ(regs, value);
+gen_EOR(ABS,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), 0),
+        return SUCCESS)
+
+gen_EOR(ABX,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->X),
+        CHECK_PAGE_CROSS)
+
+gen_EOR(ABY,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->Y),
+        CHECK_PAGE_CROSS)
+
+gen_EOR(ZER,
+        resolv_zer(G_LOW8(args), 0),
+        return SUCCESS)
+
+gen_EOR(ZEX,
+        resolv_zer(G_LOW8(args), state->X),
+        return SUCCESS)
+
+gen_EOR(IDX,
+        resolv_indirect(G_LOW8(args), state, state->X, 0),
+        return SUCCESS)
+
+gen_EOR(IDY,
+        resolv_indirect(G_LOW8(args), state, 0, state->Y),
+        CHECK_PAGE_CROSS)
+
+//ORA commands
+Status ORA_IMM(arg_t args, state_t* state) {
+    state->A |= G_LOW8(args);
+    set_PC_NZ(state, state->A);
+    return SUCCESS;
 }
 
-void BIT(uint16_t loc, Mode m, reg_t* regs) {
-    uint8_t value = m_read(loc, m, regs);
-    if((value & regs->A) == 0)
-        regs->P |= 2;
-    else regs->P &= ~2;
+gen_ORA(ABS,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), 0),
+        return SUCCESS)
+
+gen_ORA(ABX,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->X),
+        CHECK_PAGE_CROSS)
+
+gen_ORA(ABY,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->Y),
+        CHECK_PAGE_CROSS)
+
+gen_ORA(ZER,
+        resolv_zer(G_LOW8(args), 0),
+        return SUCCESS)
+
+gen_ORA(ZEX,
+        resolv_zer(G_LOW8(args), state->X),
+        return SUCCESS)
+
+gen_ORA(IDX,
+        resolv_indirect(G_LOW8(args), state, state->X, 0),
+        return SUCCESS)
+
+gen_ORA(IDY,
+        resolv_indirect(G_LOW8(args), state, 0, state->Y),
+        CHECK_PAGE_CROSS)
+
+inline Status BIT(uint8_t value, state_t* state) {
+    if((value & state->A) == 0)
+        state->P |= 2;
+    else state->P &= ~2;
 
     // setting N bit
     if(GETNBIT(value, 7) == 0)
-        regs->P &= ~(1 << 7);
-    else regs->P |= (1 << 7);
+        state->P &= ~(1 << 7);
+    else state->P |= (1 << 7);
 
     // setting V bit
     if(GETNBIT(value, 6) == 0)
-        regs->P &= ~(1 << 6);
-    else regs->P |= (1 << 6);
+        state->P &= ~(1 << 6);
+    else state->P |= (1 << 6);
+
+    return SUCCESS;
 }
 
-void ADC(uint16_t loc, Mode m, reg_t* regs) {
-    uint8_t value = m_read(loc, m, regs);
-    regs->A += value + GETNBIT(regs->P, 0);
-
-    if (regs->A > 0xff)
-        regs->P |= 1;
-    else regs->P &= ~1;
-
-    set_PC_NZ(regs, regs->A);
-
-    // ignore decimal mode
+Status BIT_ABS(arg_t args, state_t* state) {
+    return BIT(state->mem[resolv_abs(G_LOW8(args), G_HIGH8(args), 0)], state);
 }
 
-void SBC(uint16_t loc, Mode m, reg_t* regs) {
-    uint8_t value = m_read(loc, m, regs);
-    regs->A -= value + ~GETNBIT(regs->P, 0);
-
-    if (regs->A > 0xff)
-        regs->P |= 1;
-    else regs->P &= ~1;
-
-    set_PC_NZ(regs, regs->A);
-
-    // ignore decimal mode
+Status BIT_ZER(arg_t args, state_t* state) {
+    return BIT(state->mem[resolv_zer(G_LOW8(args), 0)], state);
 }
+
+#define gen_ADC(MODE, get_addr, ret) Status ADC_##MODE(arg_t args, state_t* state) { \
+                    uint8_t addr = get_addr; \
+                    uint8_t value = state->mem[addr]; \
+                    \
+                    if(GETNBIT(state->P, 3)) { \
+                        state->A += 10 * (value >> 4) + (value & 0x0f) + GETNBIT(state->P, 0); \
+                    } else { \
+                        state->A += value + GETNBIT(state->P, 0); \
+                    } \
+                    \
+                    if (state->A > 0xff) \
+                        state->P |= 1; \
+                    else state->P &= ~1; \
+                    set_PC_NZ(state, state->A); \
+                    ret;\
+                }
+
+Status ADC_IMM(arg_t args, state_t* state) {
+    uint8_t value = G_LOW8(args);
+    if(GETNBIT(state->P, 3)) {
+        state->A += 10 * (value >> 4) + (value & 0x0f) + GETNBIT(state->P, 0);
+    } else {
+        state->A += value + GETNBIT(state->P, 0);
+    }
+
+    if (state->A > 0xff)
+        state->P |= 1;
+    else state->P &= ~1;
+
+    set_PC_NZ(state, state->A);
+    return SUCCESS;
+}
+
+gen_ADC(ZER,
+        resolv_zer(G_LOW8(args), 0),
+        return SUCCESS)
+
+gen_ADC(ZEX,
+        resolv_zer(G_LOW8(args), state->X),
+        return SUCCESS)
+
+gen_ADC(ABS,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), 0),
+        return SUCCESS)
+
+gen_ADC(ABX,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->X),
+        CHECK_PAGE_CROSS)
+
+gen_ADC(ABY,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->Y),
+        CHECK_PAGE_CROSS)
+
+gen_ADC(IDX,
+        resolv_indirect(G_LOW8(args), state, state->X, 0),
+        return SUCCESS)
+
+gen_ADC(IDY,
+        resolv_indirect(G_LOW8(args), state, 0, state->Y),
+        CHECK_PAGE_CROSS)
+
+#define gen_SBC(MODE, get_addr, ret) Status SBC_##MODE(arg_t args, state_t* state) { \
+                    uint8_t addr = get_addr; \
+                    uint8_t value = state->mem[addr]; \
+                    \
+                    if(GETNBIT(state->P, 3)) { \
+                        state->A += 10 * (value >> 4) + (value & 0x0f) + GETNBIT(state->P, 0); \
+                    } else { \
+                        state->A -= value + ~GETNBIT(state->P, 0); \
+                    } \
+                    \
+                    if (state->A > 0xff) \
+                        state->P |= 1; \
+                    else state->P &= ~1; \
+                    set_PC_NZ(state, state->A); \
+                    ret;\
+                }
+
+Status SBC_IMM(arg_t args, state_t* state) {
+    uint8_t value = G_LOW8(args);
+    if(GETNBIT(state->P, 3)) {
+        state->A += 10 * (value >> 4) + (value & 0x0f) + GETNBIT(state->P, 0);
+    } else {
+        state->A -= value + ~GETNBIT(state->P, 0);
+    }
+
+    if (state->A > 0xff)
+        state->P |= 1;
+    else state->P &= ~1;
+
+    set_PC_NZ(state, state->A);
+    return SUCCESS;
+}
+
+gen_SBC(ZER,
+        resolv_zer(G_LOW8(args), 0),
+        return SUCCESS)
+
+gen_SBC(ZEX,
+        resolv_zer(G_LOW8(args), state->X),
+        return SUCCESS)
+
+gen_SBC(ABS,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), 0),
+        return SUCCESS)
+
+gen_SBC(ABX,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->X),
+        CHECK_PAGE_CROSS)
+
+gen_SBC(ABY,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->Y),
+        CHECK_PAGE_CROSS)
+
+gen_SBC(IDX,
+        resolv_indirect(G_LOW8(args), state, state->X, 0),
+        return SUCCESS)
+
+gen_SBC(IDY,
+        resolv_indirect(G_LOW8(args), state, 0, state->Y),
+        CHECK_PAGE_CROSS)
+
 
 // comparison commands
 
-static void compare(uint16_t loc, Mode m, reg_t* regs, uint8_t axy) {
-    uint8_t value = axy - m_read(loc, m, regs);
-    set_PC_NZ(regs, value);
+#define gen_CMP(MODE, get_addr, ret) Status CMP_##MODE(arg_t args, state_t* state) { \
+                                    uint8_t addr = get_addr; \
+                                    uint8_t value = state->A - state->mem[addr]; \
+                                    set_PC_NZ(state, value); \
+                                    if(value > 0x80) \
+                                        state->P &= ~1; \
+                                    else state->P |= 1; \
+                                    ret; \
+                                    }
+
+#define gen_CPX(MODE, get_addr, ret) Status CPX_##MODE(arg_t args, state_t* state) { \
+                                    uint8_t addr = get_addr; \
+                                    uint8_t value = state->X - state->mem[addr]; \
+                                    set_PC_NZ(state, value); \
+                                    if(value > 0x80) \
+                                        state->P &= ~1; \
+                                    else state->P |= 1; \
+                                    ret; \
+                                    }
+
+#define gen_CPY(MODE, get_addr, __ret) Status CPY_##MODE(arg_t args, state_t* state) { \
+                                    uint8_t addr = get_addr; \
+                                    uint8_t value = state->Y - state->mem[addr]; \
+                                    set_PC_NZ(state, value); \
+                                    if(value > 0x80) \
+                                        state->P &= ~1; \
+                                    else state->P |= 1; \
+                                    __ret; }
+
+inline Status compare(uint8_t v, state_t* state, uint8_t axy) {
+    uint8_t value = axy - v;
+    set_PC_NZ(state, value);
 
     if(value > 0x80)
-        regs->P &= ~1;
-    else regs->P |= 1;
+        state->P &= ~1;
+    else state->P |= 1;
+    return SUCCESS;
 }
 
-void CMP(uint16_t loc, Mode m, reg_t* regs) {
-    compare(loc, m, regs, regs->A);
+Status CMP_IMM(arg_t args, state_t* state) {
+    return compare(G_LOW8(args), state, state->A);
 }
 
-void CPX(uint16_t loc, Mode m, reg_t* regs) {
-    compare(loc, m, regs, regs->X);
+gen_CMP(ZER,
+        resolv_zer(G_LOW8(args), 0),
+        return SUCCESS)
+
+gen_CMP(ZEX,
+        resolv_zer(G_LOW8(args), state->X),
+        return SUCCESS)
+
+gen_CMP(ABS,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), 0),
+        return SUCCESS)
+
+
+gen_CMP(ABX,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->X),
+        CHECK_PAGE_CROSS)
+
+gen_CMP(ABY,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->Y),
+        CHECK_PAGE_CROSS)
+
+gen_CMP(IDX,
+        resolv_indirect(G_LOW8(args), state, state->X),
+        return SUCCESS)
+
+gen_CMP(IDY,
+        resolv_indirect(G_LOW8(args), state, state->Y),
+        CHECK_PAGE_CROSS)
+
+Status CPX_IMM(arg_t args, state_t* state) {
+    return compare(G_LOW8(args), state, state->X);
 }
 
-void CPY(uint16_t loc, Mode m, reg_t* regs) {
-    compare(loc, m, regs, regs->Y);
+gen_CPX(ZER,
+        resolv_zer(G_LOW8(args), 0),
+        return SUCCESS)
+
+gen_CPX(ZEX,
+        resolv_zer(G_LOW8(args), state->X),
+        return SUCCESS)
+
+gen_CPX(ABS,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), 0),
+        return SUCCESS)
+
+
+gen_CPX(ABX,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->X),
+        CHECK_PAGE_CROSS)
+
+gen_CPX(ABY,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->Y),
+        CHECK_PAGE_CROSS)
+
+gen_CPX(IDX,
+        resolv_indirect(G_LOW8(args), state, state->X),
+        return SUCCESS)
+
+gen_CPX(IDY,
+        resolv_indirect(G_LOW8(args), state, state->Y),
+        CHECK_PAGE_CROSS)
+
+
+Status CPY_IMM(arg_t args, state_t* state) {
+    return compare(G_LOW8(args), state, state->Y);
 }
 
-void INC(uint16_t loc, Mode m, reg_t* regs) {
-    uint8_t value = m_read(loc, m, regs) + 1;
-    set_PC_NZ(regs, value);
-    m_write(loc, m, value, *regs);
+gen_CPY(ZER,
+        resolv_zer(G_LOW8(args), 0),
+        return SUCCESS)
+
+gen_CPY(ZEX,
+        resolv_zer(G_LOW8(args), state->X),
+        return SUCCESS)
+
+gen_CPY(ABS,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), 0),
+        return SUCCESS)
+
+
+gen_CPY(ABX,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->X),
+        CHECK_PAGE_CROSS)
+
+gen_CPY(ABY,
+        resolv_abs(G_LOW8(args), G_HIGH8(args), state->Y),
+        CHECK_PAGE_CROSS)
+
+gen_CPY(IDX,
+        resolv_indirect(G_LOW8(args), state, state->X),
+        return SUCCESS)
+
+gen_CPY(IDY,
+        resolv_indirect(G_LOW8(args), state, state->Y),
+        CHECK_PAGE_CROSS)
+
+inline Status INC_ZER(arg_t args, state_t* state) {
+    set_PC_NZ(state, ++state->mem[resolv_zer(G_LOW8(args), 0)]);
+    return SUCCESS;
 }
 
-void INX(uint16_t loc, Mode m, reg_t* regs) {
-    uint8_t value = m_read(loc, m, regs) + 1;
-    set_PC_NZ(regs, value);
-    regs->X = value;
+inline Status INC_ZEX(arg_t args, state_t* state) {
+    set_PC_NZ(state, ++state->mem[resolv_zer(G_LOW8(args), state->X)]);
+    return SUCCESS;
 }
 
-void INY(uint16_t loc, Mode m, reg_t* regs) {
-    uint8_t value = m_read(loc, m, regs) + 1;
-    set_PC_NZ(regs, value);
-    regs->Y = value;
+inline Status INC_ABS(arg_t args, state_t* state) {
+    set_PC_NZ(state, ++state->mem[resolv_abs(G_LOW8(args), G_HIGH8(args), 0)]);
+    return SUCCESS;
 }
 
-void DEC(uint16_t loc, Mode m, reg_t* regs) {
-    uint8_t value = m_read(loc, m, regs) - 1;
-    set_PC_NZ(regs, value);
-    m_write(loc, m, value, *regs);
+inline Status INC_ABX(arg_t args, state_t* state) {
+    set_PC_NZ(state, ++state->mem[resolv_abs(G_LOW8(args), G_HIGH8(args), state->X)]);
+    return SUCCESS;
 }
 
-void DEX(uint16_t loc, Mode m, reg_t* regs) {
-    uint8_t value = m_read(loc, m, regs) - 1;
-    set_PC_NZ(regs, value);
-    regs->X = value;
+
+inline Status DEC_ZER(arg_t args, state_t* state) {
+    set_PC_NZ(state, --state->mem[resolv_zer(G_LOW8(args), 0)]);
+    return SUCCESS;
 }
 
-void DEY(uint16_t loc, Mode m, reg_t* regs) {
-    uint8_t value = m_read(loc, m, regs) - 1;
-    set_PC_NZ(regs, value);
-    regs->Y = value;
+inline Status DEC_ZEX(arg_t args, state_t* state) {
+    set_PC_NZ(state, --state->mem[resolv_zer(G_LOW8(args), state->X)]);
+    return SUCCESS;
+}
+
+inline Status DEC_ABS(arg_t args, state_t* state) {
+    set_PC_NZ(state, --state->mem[resolv_abs(G_LOW8(args), G_HIGH8(args), 0)]);
+    return SUCCESS;
+}
+
+inline Status DEC_ABX(arg_t args, state_t* state) {
+    set_PC_NZ(state, --state->mem[resolv_abs(G_LOW8(args), G_HIGH8(args), state->X)]);
+    return SUCCESS;
+}
+
+#define INCDECXY(XY, op) { state->XY op; \
+                           set_PC_NZ(state, state->XY); \
+                           return SUCCESS; }
+
+Status INX(arg_t args, state_t* state)
+    INCDECXY(X, ++)
+
+Status INY(arg_t args, state_t* state)
+    INCDECXY(Y, ++)
+
+Status DEX(arg_t args, state_t* state)
+    INCDECXY(X, --)
+
+Status DEY(arg_t args, state_t* state)
+    INCDECXY(Y, --)
+
+inline Status shift_l(uint8_t* v, state_t* state) {
+    SETNBIT(state->P, 0, GETNBIT((*v), 7));
+    (*v) <<= 1;
+    set_PC_NZ(state, (*v));
+    return SUCCESS;
 }
 
 // shift and rotate commands
-void ASL(uint16_t loc, Mode m, reg_t* regs) {
-    
-    char b;
-    
-    if(m == ACC) {
-        b = GETNBIT(regs->A, 7);
-        regs->A <<= 1;
-        set_PC_NZ(regs, regs->A);
-    } else {
-        uint8_t value = m_read(loc, m, regs) << 1;
-        b = GETNBIT(value, 7);
-        m_write(loc, m, value, *regs);
-        set_PC_NZ(regs, value);
-    }
-
-    SETNBIT(regs->P, 0, b);
+Status ASL_ACC(arg_t args, state_t* state) {
+    return shift_l(&state->A, state);
 }
 
-void LSR(uint16_t loc, Mode m, reg_t* regs) {
-    
-    char b;
-
-    if(m == ACC) {
-        b = GETNBIT(regs->A, 0);
-        regs->A >>= 1;
-        set_PC_NZ(regs, regs->A);
-    } else {
-        uint8_t value = m_read(loc, m, regs) >> 1;
-        b = GETNBIT(value, 0);
-        m_write(loc, m, value, *regs);
-        set_PC_NZ(regs, value);
-    }
-
-    SETNBIT(regs->P, 0, b);
+Status ASL_ZER(arg_t args, state_t* state) {
+    return shift_l(&state->mem[resolv_zer(G_LOW8(args), 0)], state);
 }
 
-static uint8_t rotate_l(uint8_t x) {
-    char b = GETNBIT(x, 7);
-    uint8_t r = x << 1;
-
-    if(b == 1)
-        r |= 1;
-    else r &= ~1;
-
-    return r;
+Status ASL_ZEX(arg_t args, state_t* state) {
+    return shift_l(&state->mem[resolv_zer(G_LOW8(args), state->X)], state);
 }
 
-static uint8_t rotate_r(uint8_t x) {
-    char b = GETNBIT(x, 0);
-    uint8_t r = x >> 1;
-
-    if(b == 1)
-        r |= (1 << 7);
-    else r &= ~(1 << 7);
-
-    return r;
+Status ASL_ABS(arg_t args, state_t* state) {
+    return shift_l(&state->mem[resolv_abs(G_LOW8(args), G_HIGH8(args), 0)], state);
 }
 
-void ROL(uint16_t loc, Mode m, reg_t* regs) {
-    
-    char b;
-    
-    if(m == ACC) {
-        b = GETNBIT(regs->A, 7);
-        regs->A = rotate_l(regs->A);
-        set_PC_NZ(regs, regs->A);
-    } else {
-        uint8_t value = rotate_l(m_read(loc, m, regs));
-        b = GETNBIT(value, 7);
-        m_write(loc, m, value, *regs);
-        set_PC_NZ(regs, value);
-    }
-
-    SETNBIT(regs->P, 0, b);
+Status ASL_ABX(arg_t args, state_t* state) {
+    return shift_l(&state->mem[resolv_zer(G_LOW8(args), state->X)], state);
 }
 
-void ROR(uint16_t loc, Mode m, reg_t* regs) {
-    
-    char b;
+inline Status shift_r(uint8_t* v, state_t* state) {
+    SETNBIT(state->P, 0, GETNBIT((*v), 0));
+    (*v) >>= 1;
+    set_PC_NZ(state, (*v));
+    return SUCCESS;
+}
 
-    if(m == ACC) {
-        b = GETNBIT(regs->A, 0);
-        regs->A = rotate_r(regs->A);
-        set_PC_NZ(regs, regs->A);
-    } else {
-        uint8_t value = rotate_r(m_read(loc, m, regs));
-        b = GETNBIT(value, 0);
-        m_write(loc, m, value, *regs);
-        set_PC_NZ(regs, value);
-    }
+Status LSR_ACC(arg_t args, state_t* state) {
+    return shift_r(&state->A, state);
+}
 
-    SETNBIT(regs->P, 0, b);
+Status LSR_ZER(arg_t args, state_t* state) {
+    return shift_r(&state->mem[resolv_zer(G_LOW8(args), 0)], state);
+}
+
+Status LSR_ZEX(arg_t args, state_t* state) {
+    return shift_r(&state->mem[resolv_zer(G_LOW8(args), state->X)], state);
+}
+
+Status LSR_ABS(arg_t args, state_t* state) {
+    return shift_r(&state->mem[resolv_abs(G_LOW8(args), G_HIGH8(args), 0)], state);
+}
+
+Status LSR_ABX(arg_t args, state_t* state) {
+    return shift_r(&state->mem[resolv_zer(G_LOW8(args), state->X)], state);
+}
+
+inline Status rotate_l(uint8_t* v, state_t* state) {
+    char c = GETNBIT((*v), 7);
+    SETNBIT(state->P, 0, c);
+    (*v) <<= 1;
+    (*v) += c;
+    return SUCCESS;
+}
+
+Status ROL_ACC(arg_t args, state_t* state) {
+    return rotate_l(&state->A, state);
+}
+
+Status ROL_ZER(arg_t args, state_t* state) {
+    return rotate_l(&state->mem[resolv_zer(G_LOW8(args), 0)], state);
+}
+
+Status ROL_ZEX(arg_t args, state_t* state) {
+    return rotate_l(&state->mem[resolv_zer(G_LOW8(args), state->X)], state);
+}
+
+Status ROL_ABS(arg_t args, state_t* state) {
+    return rotate_l(&state->mem[resolv_abs(G_LOW8(args), G_HIGH8(args), 0)], state);
+}
+
+Status ROL_ABX(arg_t args, state_t* state) {
+    return rotate_l(&state->mem[resolv_zer(G_LOW8(args), state->X)], state);
+}
+
+
+inline Status rotate_r(uint8_t* v, state_t* state) {
+    char c = GETNBIT((*v), 0);
+    SETNBIT(state->P, 0, c);
+    (*v) >>= 1;
+    SETNBIT((*v), 7, c);
+    return SUCCESS;
+}
+
+Status ROR_ACC(arg_t args, state_t* state) {
+    return rotate_r(&state->A, state);
+}
+
+Status ROR_ZER(arg_t args, state_t* state) {
+    return rotate_r(&state->mem[resolv_zer(G_LOW8(args), 0)], state);
+}
+
+Status ROR_ZEX(arg_t args, state_t* state) {
+    return rotate_r(&state->mem[resolv_zer(G_LOW8(args), state->X)], state);
+}
+
+Status ROR_ABS(arg_t args, state_t* state) {
+    return rotate_r(&state->mem[resolv_abs(G_LOW8(args), G_HIGH8(args), 0)], state);
+}
+
+Status ROR_ABX(arg_t args, state_t* state) {
+    return rotate_r(&state->mem[resolv_zer(G_LOW8(args), state->X)], state);
 }
