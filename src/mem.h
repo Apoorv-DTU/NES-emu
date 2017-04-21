@@ -1,17 +1,10 @@
 #ifndef MEM_H
 #define MEM_H
 
-#include "registers.h"
 #include "cmd.h"
-
-enum addr_mode { ACC, IMM, ZER, ZEX, ZEY, REL, 
-            ABS, ABX, ABY, IND, IDX, IDY 
-            };
-
-typedef enum addr_mode Mode;
+#include "registers.h"
 
 uint16_t resolv_indirect(uint8_t addr, state_t* state, uint8_t x, uint8_t y);
-
 uint16_t resolv_abs(uint8_t addr_l, uint8_t addr_h, uint8_t offset);
 uint16_t resolv_zer(uint8_t addr_l, uint8_t offset);
 
