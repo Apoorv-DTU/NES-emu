@@ -1,31 +1,44 @@
 #include "stack.h"
-#include "mem.h"
 
-void TSX(reg_t* regs) {
-    regs->X = regs->S;
-    set_PC_NZ(regs, regs->X);
+inline void push(state_t* state, uint8_t value) {
+    mem[state->S--] = value;
 }
 
-void TXS(reg_t* regs) {
-    regs->S = regs->X;
+inline uint8_t pop(state_t* state) {
+    return mem[state->S++];
 }
 
-void PHA(reg_t* regs) {
-    m_write(0x100 + regs->S, regs->A, ABS, *regs);
-    regs->S--;
+Status TSX(arg_t args, state_t* state) {
+    state->X = state->S;
+    set_PC_NZ(state, state->X);
+    return SUCCESS;
 }
 
-void PLA(reg_t* regs) {
-    regs->A = m_read(0x100 + regs->S, ABS, regs);
-    regs->S++;
+Status TXS(arg_t args, state_t* state) {
+    state->S = state->X;
+    return SUCCESS;
 }
 
-void PHP(reg_t* regs) {
-    m_write(0x100 + regs->S, regs->P, ABS, *regs);
-    regs->S--;
+Status PHA(arg_t args, state_t* state) {
+    state->mem[0x100 + state->S] = state->A;
+    state->S--;
+    return SUCCESS;
 }
 
-void PLP(reg_t* regs) {
-    regs->P = m_read(0x100 + regs->S, ABS, regs);
-    regs->S++;
+Status PLA(arg_t args, state_t* state) {
+    state->A = state->mem[0x100 + state->S];
+    state->S++;
+    return SUCCESS;
+}
+
+Status PHP(arg_t args, state_t* state) {
+    state->mem[0x100 + state->S] = state->P;
+    state->S--;
+    return SUCCESS;
+}
+
+Status PLP(arg_t args, state_t* state) {
+    state->P = state->mem[0x100 + state->S];
+    state->S++;
+    return SUCCESS;
 }
