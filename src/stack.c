@@ -1,11 +1,11 @@
 #include "stack.h"
 
 inline void push(state_t* state, uint8_t value) {
-    mem[state->S--] = value;
+    state->mem[state->S--] = value;
 }
 
 inline uint8_t pop(state_t* state) {
-    return mem[state->S++];
+    return state->mem[state->S++];
 }
 
 Status TSX(arg_t args, state_t* state) {

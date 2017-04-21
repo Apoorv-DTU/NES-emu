@@ -6,7 +6,7 @@ Status JMP_IMM(arg_t args, state_t *state) {
 }
 
 Status JMP_ABS(arg_t args, state_t *state) {
-    state->PC = mem[resolv_abs(G_LOW8(args), G_HIGH8(args), 0)];
+    state->PC = state->mem[resolv_abs(G_LOW8(args), G_HIGH8(args), 0)];
     return SUCCESS;
 }
 
@@ -15,7 +15,7 @@ Status JSR(arg_t args, state_t* state) {
     push(G_HIGH8(state->PC+2));
     push(G_LOW8(state->PC+2));
     state->PC = args;
-    return SUCCESS
+    return SUCCESS;
 }
 
 Status RTS(arg_t args, state_t* state) {
@@ -73,6 +73,6 @@ Status BRK(arg_t args, state_t* state) {
 
 Status RTI(arg_t args, state_t* state) {
     state->P = pop(state);
-    RTS(state);
+    RTS(0, state);
     return SUCCESS;
 }
