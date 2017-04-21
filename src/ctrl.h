@@ -1,24 +1,32 @@
 #ifndef CTRL_H
 #define CTRL_H
 
+#include <stdbool.h>
+#include "cmd.h"
 #include "registers.h"
 #include "mem.h"
 
-void JMP(uint16_t loc, Mode m, reg_t *regs);
-void JSR(uint16_t loc, reg_t* regs);
-void RTS(reg_t* regs);
+#define INT_ADDR 0xffff
 
-void BCC(uint8_t offset, reg_t* regs);
-void BCS(uint8_t offset, reg_t* regs);
-void BNE(uint8_t offset, reg_t* regs);
-void BEQ(uint8_t offset, reg_t* regs);
-void BVC(uint8_t offset, reg_t* regs);
-void BVS(uint8_t offset, reg_t* regs);
-void BMI(uint8_t offset, reg_t* regs);
-void BPL(uint8_t offset, reg_t* regs);
+Status JMP_IMM(arg_t args, state_t *state);
+Status JMP_ABS(arg_t args, state_t *state);
 
-void BRK(reg_t* regs);
-void RTI(reg_t* regs);
-void NOP();
+Status JSR_ABS(arg_t args, state_t *state);
+
+Status RTS_IMP(arg_t args, state_t *state);
+
+inline Status Branch(arg_t args, state_t* state, char bit, char set);
+Status BCC_REL(arg_t args, state_t *state);
+Status BCS_REL(arg_t args, state_t *state);
+Status BNE_REL(arg_t args, state_t *state);
+Status BEQ_REL(arg_t args, state_t *state);
+Status BVC_REL(arg_t args, state_t *state);
+Status BVS_REL(arg_t args, state_t *state);
+Status BMI_REL(arg_t args, state_t *state);
+Status BPL_REL(arg_t args, state_t *state);
+
+Status BRK(arg_t args, state_t *state);
+Status RTI(arg_t args, state_t *state);
+Status NOP(arg_t args, state_t *state) {}
 
 #endif
