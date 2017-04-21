@@ -12,8 +12,8 @@ Status JMP_ABS(arg_t args, state_t *state) {
 
 
 Status JSR(arg_t args, state_t* state) {
-    push(G_HIGH8(state->PC+2));
-    push(G_LOW8(state->PC+2));
+    push(G_HIGH8(state->PC+2), state);
+    push(G_LOW8(state->PC+2), state);
     state->PC = args;
     return SUCCESS;
 }
@@ -37,31 +37,31 @@ Status BCC(arg_t args, state_t* state) {
     return branch_flag(args, state, 0, 0);
 }
 
-void BCS(arg_t args, state_t* state) {
+Status BCS(arg_t args, state_t* state) {
     return branch_flag(args, state, 0, 1);
 }
 
-void BNE(arg_t args, state_t* state) {
+Status BNE(arg_t args, state_t* state) {
     return branch_flag(args, state, 1, 0);
 }
 
-void BEQ(arg_t args, state_t* state) {
+Status BEQ(arg_t args, state_t* state) {
     return branch_flag(args, state, 1, 1);
 }
 
-void BVC(arg_t args, state_t* state) {
+Status BVC(arg_t args, state_t* state) {
     return branch_flag(args, state, 6, 0);
 }
 
-void BVS(arg_t args, state_t* state) {
+Status BVS(arg_t args, state_t* state) {
     return branch_flag(args, state, 6, 1);
 }
 
-bool BPL(arg_t args, state_t* state) {
+Status BPL(arg_t args, state_t* state) {
     return branch_flag(args, state, 7, 0);
 }
 
-void BMI(arg_t args, state_t* state) {
+Status BMI(arg_t args, state_t* state) {
     return branch_flag(args, state, 7, 1);
 }
 

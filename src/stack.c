@@ -1,6 +1,6 @@
 #include "stack.h"
 
-inline void push(state_t* state, uint8_t value) {
+inline void push(uint8_t value, state_t* state) {
     state->mem[state->S--] = value;
 }
 

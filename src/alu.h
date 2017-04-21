@@ -3,6 +3,7 @@
 
 #include "cmd.h"
 #include "registers.h"
+#include "mem.h"
 
 Status AND_IMM(arg_t args, state_t* state);
 Status AND_ZER(arg_t args, state_t* state);

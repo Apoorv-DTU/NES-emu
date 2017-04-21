@@ -5,6 +5,7 @@
 #include "cmd.h"
 #include "registers.h"
 #include "mem.h"
+#include "stack.h"
 
 #define INT_ADDR 0xffff
 
@@ -15,7 +16,7 @@ Status JSR_ABS(arg_t args, state_t *state);
 
 Status RTS_IMP(arg_t args, state_t *state);
 
-inline Status Branch(arg_t args, state_t* state, char bit, char set);
+inline Status branch_flag(arg_t args, state_t* state, char bit, char set);
 Status BCC_REL(arg_t args, state_t *state);
 Status BCS_REL(arg_t args, state_t *state);
 Status BNE_REL(arg_t args, state_t *state);
@@ -27,6 +28,6 @@ Status BPL_REL(arg_t args, state_t *state);
 
 Status BRK(arg_t args, state_t *state);
 Status RTI(arg_t args, state_t *state);
-Status NOP(arg_t args, state_t *state) {}
+Status NOP(arg_t args, state_t *state) {return SUCCESS;}
 
 #endif

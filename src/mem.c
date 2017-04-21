@@ -41,7 +41,7 @@ uint16_t resolv_zer(uint8_t addr, uint8_t offset) {
                             state->mem[addr] = state->__Reg;                                \
                             return SUCCESS;
 
-#define ST_ZE(__Reg, __Off) uint16_t addr = resolv_ze(G_LOW8(args), __Off); \
+#define ST_ZE(__Reg, __Off) uint16_t addr = resolv_zer(G_LOW8(args), __Off); \
                             state->mem[addr] = state->__Reg;                \
                             return SUCCESS;
 
@@ -84,12 +84,12 @@ Status STA_ABY(arg_t args, state_t* state) { ST_AB(A, state->Y) }
 Status STA_ZER(arg_t args, state_t* state) { ST_ZE(A, 0) }
 Status STA_ZEX(arg_t args, state_t* state) { ST_ZE(A, state->X) }
 Status STA_IDX(arg_t args, state_t* state) {
-    uint16_t addr = resolv_indirect(G_LOW8(args), G_HIGH8(args), state->X, 0);
+    uint16_t addr = resolv_indirect(G_LOW8(args), state, state->X, 0);
     state->mem[addr] = state->A;
     return SUCCESS;
 }
 Status STA_IDY(arg_t args, state_t* state) {
-    uint16_t addr = resolv_indirect(G_LOW8(args), G_HIGH8(args), 0, state->Y);
+    uint16_t addr = resolv_indirect(G_LOW8(args), state, 0, state->Y);
     state->mem[addr] = state->A;
     return SUCCESS;
 }

@@ -4,8 +4,8 @@
 #include "registers.h"
 #include "mem.h"
 
-inline void push(state_t* state, uint8_t value);
-inline uint8_t pop(state_t* state);
+extern void push(uint8_t value, state_t* state);
+extern uint8_t pop(state_t* state);
 
 Status TSX(arg_t args, state_t* state);
 Status TXS(arg_t args, state_t* state);

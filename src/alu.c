@@ -343,11 +343,11 @@ gen_CMP(ABY,
         CHECK_PAGE_CROSS)
 
 gen_CMP(IDX,
-        resolv_indirect(G_LOW8(args), state, state->X),
+        resolv_indirect(G_LOW8(args), state, state->X, 0),
         return SUCCESS)
 
 gen_CMP(IDY,
-        resolv_indirect(G_LOW8(args), state, state->Y),
+        resolv_indirect(G_LOW8(args), state, 0, state->Y),
         CHECK_PAGE_CROSS)
 
 Status CPX_IMM(arg_t args, state_t* state) {
@@ -376,11 +376,11 @@ gen_CPX(ABY,
         CHECK_PAGE_CROSS)
 
 gen_CPX(IDX,
-        resolv_indirect(G_LOW8(args), state, state->X),
+        resolv_indirect(G_LOW8(args), state, state->X, 0),
         return SUCCESS)
 
 gen_CPX(IDY,
-        resolv_indirect(G_LOW8(args), state, state->Y),
+        resolv_indirect(G_LOW8(args), state, 0, state->Y),
         CHECK_PAGE_CROSS)
 
 
@@ -410,11 +410,11 @@ gen_CPY(ABY,
         CHECK_PAGE_CROSS)
 
 gen_CPY(IDX,
-        resolv_indirect(G_LOW8(args), state, state->X),
+        resolv_indirect(G_LOW8(args), state, state->X, 0),
         return SUCCESS)
 
 gen_CPY(IDY,
-        resolv_indirect(G_LOW8(args), state, state->Y),
+        resolv_indirect(G_LOW8(args), state, 0, state->Y),
         CHECK_PAGE_CROSS)
 
 inline Status INC_ZER(arg_t args, state_t* state) {
