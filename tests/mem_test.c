@@ -5,7 +5,7 @@
 
 // TODO: tests may be faulty, find out better test cases.
 
-int tests_run = 0;
+/*int tests_run = 0;
 reg_t regs;
 
 static char* test_read_acc() {
@@ -102,16 +102,16 @@ static char* mem_tests() {
     mu_run_test(test_read_write_idy);
 
     return 0;
-}
+}*/
 
 int main() {
-    char* result = mem_tests();
+ /*   char* result = mem_tests();
 
     if(result != 0)
         printf("%s\n", result);
     else printf("ALL TESTS ARE GO!!\n");
 
-    printf("\n%d tests run.\n", tests_run);
+    printf("\n%d tests run.\n", tests_run);*/
     
     return 0;
 }
